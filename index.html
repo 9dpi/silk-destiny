@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Silk of Destiny v2.1 - Premium UI</title>
+    <title>The Silk of Destiny v2.2 - Advanced UX</title>
     <style>
         :root {
             --gold: #c5a059;
@@ -33,7 +33,7 @@
             display: flex;
         }
 
-        /* SIDEBAR - KHÔI PHỤC THEO v1.9.12 */
+        /* SIDEBAR */
         #sidebar {
             width: 380px;
             min-width: 380px;
@@ -42,6 +42,7 @@
             display: flex;
             flex-direction: column;
             z-index: 10;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .sidebar-header {
@@ -134,7 +135,24 @@
             border-color: var(--gold);
         }
 
-        /* MAIN VIEW - FLUID LAYOUT */
+        /* NEXT STEP BUTTON (MOBILE) */
+        .next-step-btn {
+            display: none;
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* MAIN VIEW */
         #main-view {
             flex: 1;
             position: relative;
@@ -142,6 +160,7 @@
             flex-direction: column;
             background: var(--dark);
             overflow: hidden;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .top-nav {
@@ -187,6 +206,17 @@
         .donate-btn:hover {
             background: var(--gold);
             color: #000;
+        }
+
+        .back-btn {
+            display: none;
+            background: none;
+            border: 1px solid #333;
+            color: #666;
+            padding: 8px 15px;
+            font-size: 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
         #canvas-container {
@@ -358,6 +388,49 @@
             letter-spacing: 3px;
             border-radius: 4px;
         }
+
+        /* RESPONSIVE STEPS */
+        @media (max-width: 1000px) {
+            body {
+                flex-direction: row;
+                width: 200vw;
+                overflow: hidden;
+            }
+
+            #sidebar {
+                width: 100vw;
+                min-width: 100vw;
+                border-right: none;
+            }
+
+            #main-view {
+                width: 100vw;
+                min-width: 100vw;
+            }
+
+            .next-step-btn {
+                display: block;
+            }
+
+            .back-btn {
+                display: block;
+                margin-right: auto;
+            }
+
+            .top-nav {
+                justify-content: space-between;
+                width: calc(100% - 40px);
+                left: 20px;
+            }
+
+            body.show-pinnacles #sidebar {
+                transform: translateX(-100vw);
+            }
+
+            body.show-pinnacles #main-view {
+                transform: translateX(-100vw);
+            }
+        }
     </style>
 </head>
 
@@ -368,8 +441,7 @@
                 style="color:var(--gold); letter-spacing:4px; font-size:14px; margin-bottom:5px; text-transform:uppercase;">
                 Gieo Duyên Lành</div>
             <img src="https://raw.githubusercontent.com/9dpi/thantoan/refs/heads/main/qr-code-tech.jpg" class="qr-img">
-            <div style="font-size:12px; color:#666; line-height:1.6;">The Silk Destiny trân quý sự ủng hộ của bạn để duy
-                trì và phát triển sợi tơ này.</div>
+            <div style="font-size:12px; color:#666; line-height:1.6;">The Silk Destiny trân quý sự ủng hộ của bạn.</div>
         </div>
     </div>
 
@@ -397,6 +469,7 @@
                 <div id="path-desc" class="insight-text"></div>
                 <div class="section-title">Vận Trình Năm 2026</div>
                 <div id="year-insight" class="insight-text"></div>
+                <button class="next-step-btn" onclick="goToPinnacles()">Xem Vận Trình Tương Lai ➔</button>
             </div>
         </div>
         <div class="sidebar-footer" id="sidebar-footer" style="display:none;"><button class="reset-btn"
@@ -405,6 +478,7 @@
 
     <div id="main-view">
         <div class="top-nav">
+            <button class="back-btn" onclick="goBackToInsight()">⇠ Quay lại</button>
             <button class="donate-btn" onclick="openDonate()">GIEO DUYÊN</button>
             <button class="phase3-btn">PHASE 3</button>
         </div>
@@ -422,8 +496,7 @@
 
     <script>
         const canvas = document.getElementById('silkCanvas'), ctx = canvas.getContext('2d');
-        // QUAN TRỌNG: LUÔN CẬP NHẬT URL WEB APP MỚI SAU KHI DEPLOY CODE.GS
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0RaHiHHumJK4kiVvE1Gnre6Bad7pdrmZqEqs0ijnfoOc7sbf7crSupqpF_dc8amrd/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyK5GZTZitbOgavMYlKBbFVf1OmOZAs92Ql0It7_G38gY1l-h_3fb5bwlINabAdL0M5/exec";
 
         let silkPath = [], milestones = [], sparks = [], isLive = false, activeNode = null;
         const dS = document.getElementById('birth-day'), mS = document.getElementById('birth-month'), yS = document.getElementById('birth-year');
@@ -433,8 +506,13 @@
 
         function openDonate() { document.getElementById('donate-modal').style.display = 'flex'; }
         function closeDonate() { document.getElementById('donate-modal').style.display = 'none'; }
+
+        // ĐIỀU HƯỚNG BƯỚC (MOBILE)
+        function goToPinnacles() { document.body.classList.add('show-pinnacles'); setTimeout(resize, 600); }
+        function goBackToInsight() { document.body.classList.remove('show-pinnacles'); }
+
         window.onload = () => { const s = JSON.parse(localStorage.getItem('destiny_profile')); if (s) { document.getElementById('user-name').value = s.name; dS.value = s.d; mS.value = s.m; yS.value = s.y; document.getElementById('main-action-btn').innerText = "TIẾP TỤC HÀNH TRÌNH"; } };
-        function clearMemory() { localStorage.removeItem('destiny_profile'); location.reload(); }
+        function clearMemory() { localStorage.removeItem('destiny_profile'); document.body.classList.remove('show-pinnacles'); location.reload(); }
 
         async function initDestiny() {
             const name = document.getElementById('user-name').value; if (!name) return;
@@ -443,7 +521,7 @@
             try {
                 const res = await fetch(`${SCRIPT_URL}?name=${encodeURIComponent(name)}&d=${dS.value}&m=${mS.value}&y=${yS.value}`);
                 const data = await res.json(); renderDestiny(data);
-            } catch (e) { alert("Lỗi kết nối! Hãy kiểm tra link Web App."); document.querySelector('.start-btn').innerText = "DỆT TƠ ĐỊNH MỆNH"; }
+            } catch (e) { alert("Lỗi kết nối!"); document.querySelector('.start-btn').innerText = "DỆT TƠ ĐỊNH MỆNH"; }
         }
 
         function renderDestiny(data) {
@@ -459,9 +537,17 @@
 
         function selectNode(id) {
             activeNode = id; const m = milestones[id];
+
+            // LOGIC TINH TẾ: ĐỔI TÌNH DUYÊN -> GIA ĐÌNH CHO USER NHỎ TUỔI
+            let finalContent = m.content;
+            if (m.age < 18) {
+                finalContent = finalContent.replace(/TÌNH DUYÊN|TÌNH CẢM/g, "GIA ĐẠO & HỌC TẬP");
+                finalContent = finalContent.replace(/💎 TIỀN TÀI/g, "📚 TRI THỨC");
+            }
+
             document.getElementById('p-year').innerText = `${m.year} | ${m.age} TUỔI`;
             document.getElementById('p-title').innerText = m.label;
-            document.getElementById('p-content').innerText = m.content;
+            document.getElementById('p-content').innerText = finalContent;
             document.getElementById('bottom-panel').classList.add('active');
             setTimeout(() => { resize(); updateTip(id); }, 600);
         }
